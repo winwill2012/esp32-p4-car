@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#131c21">
+  <title>摄像头对讲</title>
+  <link rel="stylesheet" href="/p4-intercom/rtc/style.css">
+  <script type="module" src="/p4-intercom/rtc/rtc.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>摄像头对讲</h1>
+      <div class="status" id="connection" role="status">正在连接</div>
+    </header>
+    <div class="drive-view" id="drive-view">
+      <div class="screen">
+        <video id="video" autoplay playsinline muted aria-label="摄像头实时画面" hidden></video>
+        <p id="placeholder">正在连接开发板…</p>
+        <button type="button" class="fullscreen-button" id="fullscreen">全屏</button>
+      </div>
+      <section class="throttle" aria-labelledby="throttle-label">
+        <h2 id="throttle-label">油门</h2>
+        <div id="throttle" class="steering-track throttle-track" role="slider" tabindex="0"
+             aria-label="前进和后退" aria-describedby="throttle-hint" aria-orientation="vertical"
+             aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" aria-valuetext="停止">
+          <span class="steering-knob" aria-hidden="true"></span>
+        </div>
+        <p id="throttle-hint"><span id="throttle-value">停止</span> · 仅预览</p>
+      </section>
+      <section class="steering" aria-labelledby="steering-label">
+        <h2 id="steering-label">转向</h2>
+        <div id="steering" class="steering-track" role="slider" tabindex="0"
+             aria-label="左右转向" aria-describedby="steering-hint" aria-disabled="true"
+             aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" aria-valuetext="回中">
+          <span class="steering-knob" aria-hidden="true"></span>
+        </div>
+        <p id="steering-hint">等待转向连接</p>
+      </section>
+      <audio id="speaker" autoplay muted></audio>
+      <section class="controls" aria-label="语音控制">
+        <button type="button" id="audio" aria-pressed="false" disabled>开启声音</button>
+        <button type="button" id="mic" aria-pressed="false" disabled>开启麦克风</button>
+        <p id="audio-status" role="status">可分别开启声音和麦克风。</p>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,17 @@
+[Unit]
+Description=ESP32-P4 intercom relay
+After=network.target
+
+[Service]
+DynamicUser=yes
+WorkingDirectory=/opt/esp32-p4-intercom
+EnvironmentFile=/etc/esp32-p4-intercom.env
+ExecStart=/opt/node-v24/bin/node relay.mjs
+Restart=on-failure
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target

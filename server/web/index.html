@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#131c21">
+  <title>摄像头对讲</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>摄像头对讲</h1>
+      <div class="status" id="connection" role="status">正在连接</div>
+    </header>
+    <div class="screen">
+      <canvas id="video" aria-label="摄像头实时画面" hidden></canvas>
+      <p id="placeholder">正在连接开发板…</p>
+    </div>
+    <section class="controls" aria-label="语音控制">
+      <button type="button" id="audio" aria-pressed="false">开启声音</button>
+      <button type="button" id="mic" aria-pressed="false" disabled>开启麦克风</button>
+      <p id="audio-status" role="status">开启声音后即可收听和对讲。</p>
+    </section>
+  </main>
+</body>
+</html>

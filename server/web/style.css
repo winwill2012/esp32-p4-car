@@ -1,0 +1,176 @@
+:root {
+  color-scheme: dark;
+  font: 100% system-ui, "Microsoft YaHei", sans-serif;
+  background: #131c21;
+  color: #e9f0f2;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { width: min(100% - 2rem, 52rem); margin: clamp(1.5rem, 6vh, 4rem) auto; }
+header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.15rem; }
+h1 { font-size: clamp(1.5rem, 5vw, 2.1rem); margin: 0; }
+.status { color: #b5c6cc; font-size: .875rem; white-space: nowrap; }
+.status[data-live] { color: #92efc9; }
+.screen {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  max-height: 70vh;
+  overflow: hidden;
+  background: #0b1216;
+  border: 1px solid #34464e;
+  border-radius: 1rem;
+}
+.screen p { margin: 1rem; color: #b5c6cc; text-align: center; }
+.screen > * { grid-area: 1 / 1; }
+canvas, video { width: 100%; height: 100%; object-fit: contain; min-height: 0; }
+.drive-view video { transform: scaleY(-1); }
+.controls { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; padding-top: 1rem; }
+button {
+  padding: .75rem 1rem;
+  border: 1px solid #547076;
+  border-radius: .65rem;
+  background: #203136;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+button:first-child, button[aria-pressed="true"] { background: #a5f0d0; color: #102c23; border-color: #a5f0d0; }
+button:disabled { opacity: .55; cursor: default; }
+button:focus-visible { outline: 2px solid #b5ffe5; outline-offset: 3px; }
+.screen .fullscreen-button {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: .75rem;
+  inset-inline-end: .75rem;
+  padding: .55rem .85rem;
+  min-height: 44px;
+  background: #132027e8;
+  color: #e9f0f2;
+  font-size: .9rem;
+}
+#audio-status { margin: 0; color: #b5c6cc; font-size: .9rem; }
+.steering, .throttle {
+  display: grid;
+  justify-items: center;
+  gap: .5rem;
+  padding: 1rem 0 .25rem;
+}
+:is(.steering, .throttle) h2 { margin: 0; font-size: 1rem; }
+:is(.steering, .throttle) p { margin: 0; color: #b5c6cc; font-size: .875rem; }
+.drive-view { --steering-size: 8.5rem; }
+.throttle { display: none; }
+.steering-track {
+  --knob-size: 38%;
+  position: relative;
+  width: var(--steering-size);
+  aspect-ratio: 1;
+  border: 1px solid #637981;
+  border-radius: 50%;
+  background: radial-gradient(circle, #26383e 0 50%, #17252b 51% 72%);
+  box-shadow: inset 0 0 0 .38rem #32454d, inset 0 0 0 .46rem #0c171d, 0 .35rem .7rem #0005;
+  touch-action: none;
+  cursor: ew-resize;
+  user-select: none;
+}
+.steering-track[aria-disabled="true"] { opacity: .45; cursor: default; }
+.steering-track:focus-visible { outline: 2px solid #b5ffe5; outline-offset: 3px; }
+.steering-track::before {
+  content: "";
+  position: absolute;
+  inset: 14%;
+  border: 1px solid #61747a;
+  border-radius: 50%;
+  background: linear-gradient(#62767b, #62767b) center / 100% 1px no-repeat;
+  pointer-events: none;
+}
+.steering-knob {
+  position: absolute;
+  left: calc(50% + var(--stick-offset, 0px));
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--knob-size);
+  height: var(--knob-size);
+  border: 1px solid #92b3ac;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #577a72 0, #314a45 42%, #162423 84%);
+  box-shadow: inset 0 0 0 .25rem #111e1e55, 0 .3rem .55rem #000b;
+  pointer-events: none;
+}
+.throttle-track { cursor: ns-resize; }
+.throttle-track::before { background-size: 1px 100%; }
+.throttle-track .steering-knob {
+  left: 50%;
+  top: calc(50% - var(--stick-offset, 0px));
+}
+.steering-track:active .steering-knob { border-color: #a5f0d0; }
+
+body.video-expanded { overflow: hidden; }
+.drive-view:is(:fullscreen, [data-expanded]) {
+  --steering-size: clamp(6.75rem, 28vmin, 10rem);
+  --top-inset: max(.75rem, env(safe-area-inset-top));
+  --side-inset: max(.75rem, env(safe-area-inset-left), env(safe-area-inset-right));
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #0b1216;
+}
+.drive-view[data-expanded] { z-index: 10; height: 100dvh; }
+.drive-view:is(:fullscreen, [data-expanded]) .screen {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  max-height: none;
+  border: 0;
+  border-radius: 0;
+}
+.drive-view:is(:fullscreen, [data-expanded]) .fullscreen-button {
+  inset-block-start: var(--top-inset);
+  inset-inline-end: max(.75rem, env(safe-area-inset-right));
+  padding-inline: .55rem;
+  font-size: .8rem;
+}
+.drive-view:is(:fullscreen, [data-expanded]) :is(.steering, .throttle, .controls) {
+  position: absolute;
+  z-index: 1;
+}
+.drive-view:is(:fullscreen, [data-expanded]) :is(.steering, .throttle) {
+  inset-block-end: max(.75rem, env(safe-area-inset-bottom));
+  background: #0b1216b8;
+  border-radius: .65rem;
+  padding: .5rem;
+}
+.drive-view:is(:fullscreen, [data-expanded]) .steering {
+  inset-inline-end: max(.75rem, env(safe-area-inset-right));
+}
+.drive-view:is(:fullscreen, [data-expanded]) :is(.steering, .throttle) p { font-size: .75rem; }
+.drive-view:is(:fullscreen, [data-expanded]) .throttle {
+  inset-inline-start: max(.75rem, env(safe-area-inset-left));
+  display: grid;
+}
+.drive-view:is(:fullscreen, [data-expanded]) .controls {
+  inset-block-start: var(--top-inset);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100% - 9.25rem - var(--side-inset) * 2);
+  justify-content: center;
+  gap: .35rem;
+  padding: 0;
+}
+.drive-view:is(:fullscreen, [data-expanded]) .controls button {
+  min-height: 44px;
+  padding: .45rem .35rem;
+  font-size: .8rem;
+}
+.drive-view:is(:fullscreen, [data-expanded]) #audio-status {
+  flex-basis: 100%;
+  padding: .25rem .4rem;
+  background: #0b1216dc;
+  border-radius: .3rem;
+  text-align: center;
+  font-size: .75rem;
+}
+@media (max-width: 34rem) { #audio-status { flex-basis: 100%; } }

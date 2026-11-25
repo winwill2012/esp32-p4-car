@@ -1,0 +1,12 @@
+firmware/.pio/
+firmware/managed_components/
+firmware/sdkconfig.waiken-p4
+firmware/src/config.local.h
+server/node_modules/
+.pio-core/
+.workbuddy/
+.viewer-key
+.device-key
+.env
+.env.local
+*.local.env

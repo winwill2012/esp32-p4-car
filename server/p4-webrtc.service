@@ -1,0 +1,18 @@
+[Unit]
+Description=ESP32-P4 WebRTC signaling
+After=network.target
+
+[Service]
+DynamicUser=yes
+WorkingDirectory=/opt/p4-webrtc
+EnvironmentFile=/etc/esp32-p4-intercom.env
+EnvironmentFile=/etc/p4-webrtc.env
+ExecStart=/opt/node-v24/bin/node webrtc.mjs
+Restart=on-failure
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+
+[Install]
+WantedBy=multi-user.target
