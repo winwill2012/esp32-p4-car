@@ -8,42 +8,86 @@
   <link rel="stylesheet" href="/p4-intercom/rtc/style.css">
   <script type="module" src="/p4-intercom/rtc/rtc.js"></script>
 </head>
-<body>
+<body class="rtc-page">
   <main>
     <header>
       <h1>摄像头对讲</h1>
       <div class="status" id="connection" role="status">正在连接</div>
     </header>
+    <div id="fullscreen-shell">
     <div class="drive-view" id="drive-view">
       <div class="screen">
-        <video id="video" autoplay playsinline muted aria-label="摄像头实时画面" hidden></video>
+        <video id="video" autoplay playsinline muted aria-label="摄像头实时画面" data-flip-y hidden></video>
         <p id="placeholder">正在连接开发板…</p>
-        <button type="button" class="fullscreen-button" id="fullscreen">全屏</button>
+        <details class="video-orientation video-quality" id="video-quality">
+          <summary aria-label="调节清晰度">
+            <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 15l3-4 3 3 2-2 2 3"/></svg>
+            <span id="quality-label">高清</span>
+          </summary>
+          <div class="orientation-options" aria-label="清晰度">
+            <button type="button" data-quality="sd" aria-pressed="false">标清 640×360</button>
+            <button type="button" data-quality="hd" aria-pressed="true">高清</button>
+          </div>
+        </details>
+        <details class="video-orientation" id="video-orientation">
+          <summary>
+            <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M9 6l-6 12h6zM15 6l6 12h-6z"/></svg>
+            翻转
+          </summary>
+          <div class="orientation-options" aria-label="画面翻转">
+            <button type="button" id="flip-horizontal" aria-pressed="false">
+              <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-9-4-4 4 4 4m2-8 4 4-4 4"/></svg>
+              水平翻转
+            </button>
+            <button type="button" id="flip-vertical" aria-pressed="true">
+              <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16m-4-9 4-4 4 4m-8 2 4 4 4-4"/></svg>
+              垂直翻转
+            </button>
+          </div>
+        </details>
       </div>
+      <audio id="speaker" autoplay muted></audio>
+      <section class="controls" aria-label="画面、灯光和语音控制">
+        <button type="button" id="audio" aria-pressed="false" disabled>
+          <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4zM15 9a4 4 0 0 1 0 6m3-9a8 8 0 0 1 0 12"/></svg>
+          <span class="button-label">开启声音</span>
+        </button>
+        <button type="button" id="mic" aria-pressed="false" disabled>
+          <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11v1a7 7 0 0 0 14 0v-1m-7 8v3m-3 0h6"/></svg>
+          <span class="button-label">开启麦克风</span>
+        </button>
+        <button type="button" id="headlight" aria-label="开启前大灯" aria-pressed="false" disabled>
+          <svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6h3a6 6 0 0 1 0 12h-3zM4 7h4m-5 5h5m-4 5h4"/></svg>
+          <span>大灯</span>
+        </button>
+        <button type="button" class="fullscreen-button" id="fullscreen" aria-pressed="false">
+          <svg class="button-icon enter-fullscreen" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4H4v5m11-5h5v5M4 15v5h5m11-5v5h-5"/></svg>
+          <svg class="button-icon exit-fullscreen" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h5V4m11 5h-5V4M9 20v-5H4m11 5v-5h5"/></svg>
+          <span class="button-label">全屏</span>
+        </button>
+        <p id="audio-status" role="status" hidden></p>
+      </section>
       <section class="throttle" aria-labelledby="throttle-label">
-        <h2 id="throttle-label">油门</h2>
+        <h2 id="throttle-label">前进 / 后退</h2>
         <div id="throttle" class="steering-track throttle-track" role="slider" tabindex="0"
              aria-label="前进和后退" aria-describedby="throttle-hint" aria-orientation="vertical"
              aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" aria-valuetext="停止">
+          <span class="stick-guide" aria-hidden="true"><span>↑</span><span>↓</span></span>
           <span class="steering-knob" aria-hidden="true"></span>
         </div>
-        <p id="throttle-hint"><span id="throttle-value">停止</span> · 仅预览</p>
+        <p id="throttle-hint"><span id="throttle-value">停止</span> · <span id="throttle-mode">仅预览</span></p>
       </section>
       <section class="steering" aria-labelledby="steering-label">
         <h2 id="steering-label">转向</h2>
         <div id="steering" class="steering-track" role="slider" tabindex="0"
              aria-label="左右转向" aria-describedby="steering-hint" aria-disabled="true"
              aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" aria-valuetext="回中">
+          <span class="stick-guide" aria-hidden="true"><span>←</span><span>→</span></span>
           <span class="steering-knob" aria-hidden="true"></span>
         </div>
-        <p id="steering-hint">等待转向连接</p>
+        <p id="steering-hint"><span id="steering-offline">等待连接</span><span id="steering-value" hidden>回中</span></p>
       </section>
-      <audio id="speaker" autoplay muted></audio>
-      <section class="controls" aria-label="语音控制">
-        <button type="button" id="audio" aria-pressed="false" disabled>开启声音</button>
-        <button type="button" id="mic" aria-pressed="false" disabled>开启麦克风</button>
-        <p id="audio-status" role="status">可分别开启声音和麦克风。</p>
-      </section>
+    </div>
     </div>
   </main>
 </body>

@@ -10,7 +10,7 @@
 #define SERVO_HZ 50
 #define SERVO_BITS 14
 #define SERVO_CENTER_US 1500
-#define SERVO_TRAVEL_US 350
+#define SERVO_TRAVEL_US 525
 
 typedef struct {
     int position;

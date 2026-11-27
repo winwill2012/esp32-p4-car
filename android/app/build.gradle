@@ -1,0 +1,26 @@
+plugins {
+    id 'com.android.application' version '8.13.2'
+}
+
+android {
+    namespace 'io.welinklab.p4car'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'io.welinklab.p4car'
+        minSdk 26
+        targetSdk 35
+        versionCode 11
+        versionName '1.1.9'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'io.github.webrtc-sdk:android:150.7871.08'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+}

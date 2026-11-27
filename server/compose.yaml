@@ -1,0 +1,68 @@
+services:
+  signaling:
+    build: .
+    restart: unless-stopped
+    init: true
+    environment:
+      SIGNAL_BIND: 0.0.0.0
+      PUBLIC_ORIGIN: https://${PUBLIC_IP:?Run bash setup.sh with your public IPv4}
+      TURN_HOST: ${PUBLIC_IP}
+      DEVICE_KEY: ${DEVICE_KEY:?Run bash setup.sh}
+      TURN_SECRET: ${TURN_SECRET:?Run bash setup.sh}
+      P4_CARS: ${P4_CARS:-[]}
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:18128/healthz').then(r=>process.exit(r.ok?0:1),()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+  https:
+    image: caddy:2.11-alpine
+    restart: unless-stopped
+    depends_on:
+      signaling:
+        condition: service_healthy
+    environment:
+      PUBLIC_IP: ${PUBLIC_IP}
+    ports:
+      - "80:80/tcp"
+      - "443:443/tcp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+
+  turn:
+    image: coturn/coturn:4.7.0
+    restart: unless-stopped
+    network_mode: host
+    command:
+      - -n
+      - --log-file=stdout
+      - --no-cli
+      - --no-tls
+      - --no-dtls
+      - --no-tcp-relay
+      - --no-multicast-peers
+      - --fingerprint
+      - --listening-port=3478
+      - --listening-ip=${TURN_LOCAL_IP:?Run bash setup.sh}
+      - --relay-ip=${TURN_LOCAL_IP}
+      - --external-ip=${PUBLIC_IP}/${TURN_LOCAL_IP}
+      - --realm=${PUBLIC_IP}
+      - --use-auth-secret
+      - --static-auth-secret=${TURN_SECRET}
+      - --min-port=49180
+      - --max-port=49219
+      - --user-quota=4
+      - --total-quota=12
+      - --denied-peer-ip=0.0.0.0-0.255.255.255
+      - --denied-peer-ip=10.0.0.0-10.255.255.255
+      - --denied-peer-ip=100.64.0.0-100.127.255.255
+      - --denied-peer-ip=127.0.0.0-127.255.255.255
+      - --denied-peer-ip=169.254.0.0-169.254.255.255
+      - --denied-peer-ip=172.16.0.0-172.31.255.255
+      - --denied-peer-ip=192.168.0.0-192.168.255.255
+
+volumes:
+  caddy_data:

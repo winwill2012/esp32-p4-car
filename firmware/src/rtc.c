@@ -18,8 +18,8 @@
 
 #define SIGNAL_CAPACITY 16384
 #define SESSION_ID_SIZE 36
-#define STEERING_WATCHDOG_MS 450
-#define STEERING_CLOCK_TOLERANCE_MS 250
+#define DRIVE_WATCHDOG_MS 450
+#define DRIVE_CLOCK_TOLERANCE_MS 250
 
 typedef struct {
     char *data;
@@ -47,7 +47,7 @@ static char signal_buffer[SIGNAL_CAPACITY + 1];
 static char session[SESSION_ID_SIZE + 1];
 static char turn_url[128], turn_user[96], turn_key[96];
 static esp_peer_ice_server_cfg_t ice_server;
-static bool supports_audio, supports_video, supports_steering;
+static bool supports_audio, supports_video, supports_steering, supports_lights;
 static atomic_uint signaling_epoch, media_generation;
 static atomic_bool media_active, peer_failed;
 
@@ -59,6 +59,7 @@ static void set_media(bool active)
         if (supports_audio) audio_enable(active);
         if (supports_video) camera_enable(active);
         if (!active && supports_steering) steering_set(0, 0);
+        if (!active && supports_lights) lights_reset();
         if (active) atomic_store(&media_active, true);
     }
 }
@@ -124,7 +125,8 @@ static int peer_state(esp_peer_state_t state, void *ctx)
     if (state <= ESP_PEER_STATE_CONNECT_FAILED) ESP_LOGI(TAG, "Peer state %d", state);
     if (state == ESP_PEER_STATE_CONNECTED) {
         set_media(true);
-        if (supports_steering) send_signal("steering-ready", NULL, 0);
+        if (supports_steering || supports_lights) send_signal("steering-ready", NULL, 0);
+        if (supports_lights) send_signal("lights-ready", NULL, 0);
     } else if (state == ESP_PEER_STATE_VIDEO_PLI_RECEIVED && supports_video) {
         camera_request_keyframe();
     } else if (state == ESP_PEER_STATE_DISCONNECTED || state == ESP_PEER_STATE_CONNECT_FAILED) {
@@ -178,23 +180,26 @@ static int open_peer(void)
     return result == ESP_PEER_ERR_NONE ? esp_peer_new_connection(peer) : result;
 }
 
-static void receive_steering(const char *payload)
+static void receive_drive(const char *payload, bool steering)
 {
     int position, end = 0;
     long long sent_ms;
     if (sscanf(payload, "%d %lld%n", &position, &sent_ms, &end) != 2 ||
         payload[end] || position < -100 || position > 100) return;
-    if (position == 0) {
-        steering_set(0, 0);
-        return;
+    uint32_t remaining_ms = 0;
+    if (position != 0) {
+        struct timeval now;
+        gettimeofday(&now, NULL);
+        int64_t now_ms = (int64_t)now.tv_sec * 1000 + now.tv_usec / 1000;
+        if (sent_ms < now_ms - DRIVE_WATCHDOG_MS || sent_ms > now_ms + DRIVE_CLOCK_TOLERANCE_MS) return;
+        remaining_ms = sent_ms > now_ms ? DRIVE_WATCHDOG_MS : DRIVE_WATCHDOG_MS - (now_ms - sent_ms);
     }
-    struct timeval now;
-    gettimeofday(&now, NULL);
-    int64_t now_ms = (int64_t)now.tv_sec * 1000 + now.tv_usec / 1000;
-    if (sent_ms < now_ms - STEERING_WATCHDOG_MS || sent_ms > now_ms + STEERING_CLOCK_TOLERANCE_MS) return;
-    uint32_t remaining_ms = sent_ms > now_ms ? STEERING_WATCHDOG_MS :
-                            STEERING_WATCHDOG_MS - (now_ms - sent_ms);
-    steering_set(position, remaining_ms);
+    if (steering) {
+        if (supports_steering) steering_set(position, remaining_ms);
+        if (supports_lights) lights_turn(position, remaining_ms);
+    } else if (supports_lights) {
+        lights_reverse(position < 0, remaining_ms);
+    }
 }
 
 static void process_signal(char *text)
@@ -214,6 +219,11 @@ static void process_signal(char *text)
         strcpy(turn_url, url);
         strcpy(turn_user, user);
         strcpy(turn_key, key);
+        const bool standard = camera_set_standard(supports_video && next && strcmp(next, "sd") == 0);
+        if (supports_video) {
+            const char *quality = standard ? "sd" : (camera_supports_standard() ? "hd" : "hd-only");
+            send_signal("video-quality", (const uint8_t *)quality, strlen(quality));
+        }
         int result = open_peer();
         if (result != ESP_PEER_ERR_NONE) {
             ESP_LOGW(TAG, "Start WebRTC failed: %d", result);
@@ -227,9 +237,16 @@ static void process_signal(char *text)
             esp_peer_msg_t message = { .type = ESP_PEER_MSG_TYPE_SDP, .data = (uint8_t *)next, .size = strlen(next) };
             int result = esp_peer_send_msg(peer, &message);
             if (result != ESP_PEER_ERR_NONE) atomic_store(&peer_failed, true);
-        } else if (strncmp(heading, "steer ", 6) == 0 && next && supports_steering &&
-                   atomic_load(&media_active)) {
-            receive_steering(next);
+        } else if (next && atomic_load(&media_active)) {
+            if (strncmp(heading, "steer ", 6) == 0) {
+                receive_drive(next, true);
+            } else if (strncmp(heading, "throttle ", 9) == 0 && supports_lights) {
+                receive_drive(next, false);
+            } else if (strncmp(heading, "headlight ", 10) == 0 && supports_lights &&
+                       (strcmp(next, "0") == 0 || strcmp(next, "1") == 0)) {
+                lights_headlight(next[0] == '1');
+                send_signal("headlight-state", (const uint8_t *)next, 1);
+            }
         }
     }
 }
@@ -314,11 +331,12 @@ static void signaling_event(void *arg, esp_event_base_t base, int32_t event, voi
     }
 }
 
-esp_err_t rtc_start(const char *uri, const char *headers, bool video, bool audio, bool steering)
+esp_err_t rtc_start(const char *uri, const char *headers, bool video, bool audio, bool steering, bool lights)
 {
     supports_video = video;
     supports_audio = audio;
     supports_steering = steering;
+    supports_lights = lights;
     esp_log_level_set("AGENT", ESP_LOG_WARN);
     command_queue = xQueueCreate(6, sizeof(signal_message_t));
     audio_queue = xQueueCreate(8, sizeof(encoded_audio_t));

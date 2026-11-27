@@ -10,3 +10,12 @@ server/node_modules/
 .env
 .env.local
 *.local.env
+miniprogram/project.private.config.json
+.android-build/
+android/.gradle/
+android/local.properties
+android/**/build/
+server/setup-output/
+server/.env.*
+server/.setup.lock
+dist/

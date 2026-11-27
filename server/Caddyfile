@@ -1,0 +1,18 @@
+{
+	admin off
+	default_sni {$PUBLIC_IP}
+	servers {
+		protocols h1 h2
+	}
+}
+
+https://{$PUBLIC_IP} {
+	tls {
+		issuer acme https://acme-v02.api.letsencrypt.org/directory {
+			profile shortlived
+		}
+	}
+	@entry path / /p4-intercom /p4-intercom/
+	redir @entry /p4-intercom/rtc/ 302
+	reverse_proxy signaling:18128
+}

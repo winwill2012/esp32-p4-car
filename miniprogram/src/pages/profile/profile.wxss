@@ -1,0 +1,81 @@
+.settings-page {
+  max-width: 900rpx;
+  margin: 0 auto;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.config-state {
+  flex: none;
+  padding: 7rpx 17rpx;
+  border-radius: 100rpx;
+  background: #e7eeed;
+  color: #526970;
+  font-size: 24rpx;
+}
+
+.config-state.is-configured {
+  background: #dcefe8;
+  color: #086b56;
+}
+
+.access-panel {
+  margin-top: 30rpx;
+  padding: 30rpx;
+  border-radius: 22rpx;
+  border: 1px solid #dbe7e6;
+  background: #fff;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 16rpx;
+  color: #29474b;
+  font-size: 27rpx;
+  font-weight: 600;
+}
+
+.field + .field { margin-top: 30rpx; }
+
+.credential {
+  height: 96rpx;
+  padding: 0 22rpx;
+  border: 2rpx solid #c9dbda;
+  border-radius: 14rpx;
+  background: #f7fbfa;
+  color: #172f35;
+  font-size: 29rpx;
+}
+
+.credential-placeholder { color: #5c7479; }
+
+.error, .footnote, .field-hint {
+  display: block;
+  margin-top: 18rpx;
+  font-size: 25rpx;
+  line-height: 1.6;
+}
+
+.error { color: #a83027; }
+.footnote, .field-hint { color: #526970; }
+.field-hint { margin-top: 12rpx; font-size: 24rpx; }
+.save-action { margin-top: 24rpx; }
+.footnote { text-align: center; }
+
+.connection-panel { margin-top: 18rpx; }
+.connection-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20rpx;
+}
+.connection-label {
+  color: #29474b;
+  font-size: 27rpx;
+  font-weight: 600;
+}

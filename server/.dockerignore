@@ -1,0 +1,9 @@
+**
+!Dockerfile
+!package.json
+!package-lock.json
+!webrtc.mjs
+!web/
+!web/rtc-index.html
+!web/rtc.js
+!web/style.css

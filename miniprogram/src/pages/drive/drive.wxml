@@ -1,0 +1,9 @@
+<web-view wx:if="{{controlUrl}}" src="{{controlUrl}}" binderror="onWebError" />
+<view wx:else class="page">
+  <text class="title">{{error ? '无法打开遥控台' : '遥控台'}}</text>
+  <text class="description">{{error || (configured ? '正在打开遥控台…' : '在「设置」保存服务器配置，即可查看实时画面和遥控小车。')}}</text>
+  <button wx:if="{{error}}" class="action" bindtap="openControl"><text class="action-icon" aria-hidden="true">↻</text>重新连接</button>
+  <button wx:if="{{!configured || error}}" class="action {{error ? 'secondary' : ''}}" bindtap="openProfile">
+    <text class="action-icon" aria-hidden="true">⚙</text>服务器配置
+  </button>
+</view>

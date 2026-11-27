@@ -25,7 +25,51 @@ h1 { font-size: clamp(1.5rem, 5vw, 2.1rem); margin: 0; }
 .screen p { margin: 1rem; color: #b5c6cc; text-align: center; }
 .screen > * { grid-area: 1 / 1; }
 canvas, video { width: 100%; height: 100%; object-fit: contain; min-height: 0; }
-.drive-view video { transform: scaleY(-1); }
+.drive-view video { transform: scale(var(--flip-x, 1), var(--flip-y, 1)); }
+.drive-view video[data-flip-x] { --flip-x: -1; }
+.drive-view video[data-flip-y] { --flip-y: -1; }
+.video-orientation {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: .5rem;
+  inset-inline-end: .5rem;
+  display: grid;
+  justify-items: end;
+}
+.video-orientation summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  min-height: 44px;
+  padding: .35rem .6rem;
+  border: 1px solid #a3c2c46b;
+  border-radius: .6rem;
+  background: #182a2ee8;
+  color: #fff;
+  cursor: pointer;
+  font-size: .85rem;
+  font-weight: 600;
+  list-style: none;
+}
+.video-orientation summary::-webkit-details-marker { display: none; }
+.video-orientation summary:focus-visible { outline: 2px solid #b5ffe5; outline-offset: 2px; }
+.orientation-options {
+  display: flex;
+  gap: .35rem;
+  margin-block-start: .35rem;
+  padding: .3rem;
+  border: 1px solid #a3c2c46b;
+  border-radius: .65rem;
+  background: #17282cf5;
+}
+.video-orientation:not([open]) .orientation-options { display: none; }
+.video-orientation.video-quality {
+  inset-inline: .5rem auto;
+  justify-items: start;
+}
+.rtc-page .orientation-options button { min-height: 44px; padding-inline: .45rem; }
+.rtc-page .orientation-options button[aria-pressed="false"] { background: #253a3f; color: #e9f0f2; border-color: #547076; }
 .controls { display: flex; align-items: center; gap: .75rem; flex-wrap: wrap; padding-top: 1rem; }
 button {
   padding: .75rem 1rem;
@@ -39,17 +83,6 @@ button {
 button:first-child, button[aria-pressed="true"] { background: #a5f0d0; color: #102c23; border-color: #a5f0d0; }
 button:disabled { opacity: .55; cursor: default; }
 button:focus-visible { outline: 2px solid #b5ffe5; outline-offset: 3px; }
-.screen .fullscreen-button {
-  position: absolute;
-  z-index: 1;
-  inset-block-start: .75rem;
-  inset-inline-end: .75rem;
-  padding: .55rem .85rem;
-  min-height: 44px;
-  background: #132027e8;
-  color: #e9f0f2;
-  font-size: .9rem;
-}
 #audio-status { margin: 0; color: #b5c6cc; font-size: .9rem; }
 .steering, .throttle {
   display: grid;
@@ -60,7 +93,74 @@ button:focus-visible { outline: 2px solid #b5ffe5; outline-offset: 3px; }
 :is(.steering, .throttle) h2 { margin: 0; font-size: 1rem; }
 :is(.steering, .throttle) p { margin: 0; color: #b5c6cc; font-size: .875rem; }
 .drive-view { --steering-size: 8.5rem; }
-.throttle { display: none; }
+.rtc-page main { margin-block: clamp(.75rem, 3vh, 2rem); }
+.rtc-page header { gap: .65rem; margin-block-end: .75rem; }
+.rtc-page .status {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .3rem .6rem;
+  border-radius: 999px;
+  background: #203136;
+}
+.rtc-page .status::before {
+  content: "";
+  width: .42rem;
+  height: .42rem;
+  background: currentColor;
+  border-radius: 50%;
+}
+.rtc-page .drive-view {
+  --steering-size: clamp(5.75rem, 29vw, 9rem);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .75rem;
+}
+.rtc-page :is(.screen, .controls) { grid-column: 1 / -1; }
+.rtc-page .screen { aspect-ratio: 16 / 9; }
+.rtc-page :is(.steering, .throttle) {
+  align-content: start;
+  padding: .7rem .2rem;
+  border: 1px solid #34464e;
+  border-radius: .85rem;
+  background: #18262c;
+  text-align: center;
+}
+.rtc-page :is(.steering, .throttle) h2 { font-size: .9rem; }
+.rtc-page :is(.steering, .throttle) p { font-size: .77rem; }
+.rtc-page .controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) repeat(2, minmax(0, .85fr));
+  gap: .4rem;
+  padding: 0;
+  text-align: center;
+}
+.rtc-page #speaker { display: none; }
+.rtc-page #audio-status { grid-column: 1 / -1; font-size: .8rem; }
+.rtc-page button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  min-height: 48px;
+  padding: .5rem .25rem;
+  white-space: nowrap;
+  font-size: .875rem;
+  font-weight: 600;
+}
+.rtc-page .controls button[aria-pressed="false"] { background: #203136; color: #e9f0f2; border-color: #547076; }
+.button-icon {
+  width: 1.15em;
+  height: 1.15em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+#fullscreen[aria-pressed="false"] .exit-fullscreen,
+#fullscreen[aria-pressed="true"] .enter-fullscreen { display: none; }
 .steering-track {
   --knob-size: 38%;
   position: relative;
@@ -104,73 +204,201 @@ button:focus-visible { outline: 2px solid #b5ffe5; outline-offset: 3px; }
   left: 50%;
   top: calc(50% - var(--stick-offset, 0px));
 }
+.stick-guide {
+  position: absolute;
+  inset: .25rem .64rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #a9c4c9;
+  font-size: .9rem;
+  line-height: 1;
+  pointer-events: none;
+}
+.throttle-track .stick-guide {
+  inset: .48rem .25rem;
+  flex-direction: column;
+}
 .steering-track:active .steering-knob { border-color: #a5f0d0; }
 
 body.video-expanded { overflow: hidden; }
+#fullscreen-shell:fullscreen { overflow: hidden; background: #0b1216; }
 .drive-view:is(:fullscreen, [data-expanded]) {
   --steering-size: clamp(6.75rem, 28vmin, 10rem);
-  --top-inset: max(.75rem, env(safe-area-inset-top));
-  --side-inset: max(.75rem, env(safe-area-inset-left), env(safe-area-inset-right));
+  --safe-top: env(safe-area-inset-top);
+  --safe-right: env(safe-area-inset-right);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left: env(safe-area-inset-left);
+  --top-inset: max(.75rem, var(--safe-top));
+  --side-inset: max(.75rem, var(--safe-left), var(--safe-right));
   position: fixed;
   inset: 0;
   width: 100%;
   height: 100%;
   background: #0b1216;
 }
+.rtc-page .drive-view:is(:fullscreen, [data-expanded]) { --steering-size: clamp(4.75rem, 30vmin, 10rem); }
+.rtc-page .drive-view:is(:fullscreen, [data-expanded]) .screen { aspect-ratio: auto; }
 .drive-view[data-expanded] { z-index: 10; height: 100dvh; }
+.drive-view[data-expanded][data-rotated] {
+  --safe-top: env(safe-area-inset-right);
+  --safe-right: env(safe-area-inset-bottom);
+  --safe-bottom: env(safe-area-inset-left);
+  --safe-left: env(safe-area-inset-top);
+  inset: 0 auto auto 0;
+  width: 100vh;
+  height: 100vw;
+  width: 100dvh;
+  height: 100dvw;
+  transform-origin: top left;
+  transform: translateX(100vw) rotate(90deg);
+  transform: translateX(100dvw) rotate(90deg);
+}
 .drive-view:is(:fullscreen, [data-expanded]) .screen {
   position: absolute;
+  z-index: 0;
   inset: 0;
   aspect-ratio: auto;
   max-height: none;
   border: 0;
   border-radius: 0;
 }
-.drive-view:is(:fullscreen, [data-expanded]) .fullscreen-button {
-  inset-block-start: var(--top-inset);
-  inset-inline-end: max(.75rem, env(safe-area-inset-right));
-  padding-inline: .55rem;
-  font-size: .8rem;
+.rtc-page .drive-view[data-expanded] .screen video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.rtc-page .drive-view[data-expanded] .video-orientation {
+  inset-block-start: calc(var(--top-inset) + 3.4rem);
+  inset-inline-end: max(.75rem, var(--safe-right));
+}
+.rtc-page .drive-view[data-expanded] .video-quality {
+  inset-inline: max(.75rem, var(--safe-left)) auto;
 }
 .drive-view:is(:fullscreen, [data-expanded]) :is(.steering, .throttle, .controls) {
   position: absolute;
   z-index: 1;
 }
 .drive-view:is(:fullscreen, [data-expanded]) :is(.steering, .throttle) {
-  inset-block-end: max(.75rem, env(safe-area-inset-bottom));
-  background: #0b1216b8;
-  border-radius: .65rem;
-  padding: .5rem;
+  inset-block-end: max(.75rem, var(--safe-bottom));
+}
+.rtc-page .drive-view:is(:fullscreen, [data-expanded]) :is(.steering, .throttle) {
+  min-width: calc(var(--steering-size) + .9rem);
+  padding: .35rem .45rem;
+  border-color: transparent;
+  background: transparent;
 }
 .drive-view:is(:fullscreen, [data-expanded]) .steering {
-  inset-inline-end: max(.75rem, env(safe-area-inset-right));
+  inset-inline-end: max(.75rem, var(--safe-right));
 }
 .drive-view:is(:fullscreen, [data-expanded]) :is(.steering, .throttle) p { font-size: .75rem; }
 .drive-view:is(:fullscreen, [data-expanded]) .throttle {
-  inset-inline-start: max(.75rem, env(safe-area-inset-left));
+  inset-inline-start: max(.75rem, var(--safe-left));
   display: grid;
 }
 .drive-view:is(:fullscreen, [data-expanded]) .controls {
   inset-block-start: var(--top-inset);
   left: 50%;
   transform: translateX(-50%);
-  width: max-content;
-  max-width: calc(100% - 9.25rem - var(--side-inset) * 2);
+  width: min(26rem, calc(100% - var(--side-inset) * 2));
   justify-content: center;
   gap: .35rem;
   padding: 0;
 }
 .drive-view:is(:fullscreen, [data-expanded]) .controls button {
-  min-height: 44px;
-  padding: .45rem .35rem;
+  padding: .4rem .18rem;
   font-size: .8rem;
 }
 .drive-view:is(:fullscreen, [data-expanded]) #audio-status {
-  flex-basis: 100%;
   padding: .25rem .4rem;
   background: #0b1216dc;
   border-radius: .3rem;
   text-align: center;
   font-size: .75rem;
 }
-@media (max-width: 34rem) { #audio-status { flex-basis: 100%; } }
+@media (max-width: 22.5rem) {
+  .rtc-page .controls button { font-size: .75rem; gap: .25rem; }
+}
+.light-theme #fullscreen-shell:fullscreen { background: #e4ecec; }
+
+:root.light-theme {
+  color-scheme: light;
+  background: #f3f7f7;
+  color: #172f35;
+}
+.light-theme .rtc-page .status,
+.light-theme .rtc-page :is(.steering, .throttle) p,
+.light-theme .rtc-page .screen p,
+.light-theme .rtc-page #audio-status { color: #526970; }
+.light-theme .rtc-page .status { background: #e5ecec; }
+.light-theme .rtc-page .status[data-live] { color: #086b56; background: #dcefe8; }
+.light-theme .rtc-page .screen {
+  background: #e4ecec;
+  border-color: #cfdddd;
+}
+.light-theme .rtc-page :is(.steering, .throttle) {
+  background: #fff;
+  border-color: #dbe7e6;
+}
+.light-theme .rtc-page .steering-track {
+  border-color: #9eb7b5;
+  background: radial-gradient(circle, #f0f8f5 0 50%, #dcebe7 51% 72%);
+  box-shadow: inset 0 0 0 .38rem #e8f3ef, inset 0 0 0 .46rem #a9c1bf, 0 .26rem .55rem #1d44331a;
+}
+.light-theme .rtc-page .steering-track::before {
+  border-color: #a7c0ba;
+  background-image: linear-gradient(#a7c0ba, #a7c0ba);
+}
+.light-theme .rtc-page .steering-knob {
+  border-color: #68988d;
+  background: radial-gradient(circle at 35% 28%, #effaf5 0, #bedbd1 48%, #7ba99c 94%);
+  box-shadow: 0 .2rem .45rem #294c3b40;
+}
+.light-theme .rtc-page .steering-track:active .steering-knob { border-color: #086b56; }
+.light-theme .rtc-page .stick-guide { color: #426f65; }
+.light-theme .rtc-page .controls button[aria-pressed="false"] {
+  background: #fff;
+  border-color: #c7d9d6;
+  color: #254a47;
+}
+.light-theme .rtc-page .controls .fullscreen-button[aria-pressed="true"] { background: #e0eeeb; color: #175145; }
+.light-theme .rtc-page .controls button[aria-pressed="true"] {
+  background: #086b56;
+  border-color: #086b56;
+  color: #fff;
+}
+.rtc-page .controls #headlight[aria-pressed="true"] {
+  background: #f5d48c;
+  border-color: #dfb96e;
+  color: #593e05;
+}
+.light-theme .rtc-page :is(button, .steering-track):focus-visible { outline-color: #086b56; }
+.light-theme .rtc-page .drive-view:is(:fullscreen, [data-expanded]) { background: #e4ecec; }
+.light-theme .rtc-page .drive-view[data-expanded] #audio-status {
+  background: #ffffffe0;
+}
+
+.rtc-page .drive-view[data-expanded] :is(.steering, .throttle) :is(h2, p),
+.rtc-page .drive-view[data-expanded] .stick-guide {
+  color: #edf9fa;
+  text-shadow: 0 1px 3px #000, 0 0 .4rem #102026;
+}
+.rtc-page .drive-view[data-expanded] .steering-track {
+  border-color: #b2d4d089;
+  background: radial-gradient(circle, #1023276b 0 50%, #101f27b8 51% 73%);
+  box-shadow: inset 0 0 0 .3rem #b1d8d526, 0 .25rem .65rem #05101440;
+}
+.rtc-page .drive-view[data-expanded] .steering-track::before {
+  border-color: #c1e3df59;
+  background-image: linear-gradient(#c1e3df65, #c1e3df65);
+}
+.rtc-page .drive-view[data-expanded] .steering-knob {
+  border-color: #b9e1d9b8;
+  background: radial-gradient(circle at 34% 28%, #82b4ada8, #315655d9 54%, #14282ee8);
+  box-shadow: inset 0 0 0 .18rem #b9e1d923, 0 .24rem .48rem #08141891;
+}
+.rtc-page .drive-view[data-expanded] .steering-track:active .steering-knob {
+  border-color: #b5ffe5;
+}
